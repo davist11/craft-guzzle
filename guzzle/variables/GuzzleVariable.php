@@ -8,6 +8,7 @@ class GuzzleVariable
 		$url = $options['url'];
 		$limit = array_key_exists('limit', $options) ? NumberHelper::makeNumeric($options['limit']) : null;
 		$offset = array_key_exists('offset', $options) ? NumberHelper::makeNumeric($options['offset']) : 0;
+		$expire = array_key_exists('expire', $options) ? NumberHelper::makeNumeric($options['expire']) : null;
 
 		// Check to see if the response is cached
 		$cachedResponse = craft()->fileCache->get($url);
@@ -28,7 +29,7 @@ class GuzzleVariable
 			$items = $response->json();
 
 			// Cache the response
-			craft()->fileCache->set($url, $items);
+			craft()->fileCache->set($url, $items, $expire);
 
 			// Apply the limit and offset
 			$items = array_slice($items, $offset, $limit);
