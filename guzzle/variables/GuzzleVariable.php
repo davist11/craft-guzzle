@@ -3,9 +3,20 @@ namespace Craft;
 
 class GuzzleVariable
 {
+	public function objectToArray($object)
+	{
+		if(!is_object($object) && !is_array($object)) {
+			return $object;
+		}
+
+	    return array_map(array($this, 'objectToArray'), (array) $object);
+	}
+
 	public function get($options)
 	{
 		$url = $options['url'];
+		$format = array_key_exists('format', $options) ? $options['format'] : 'json';
+		$traverse_to = array_key_exists('traverseTo', $options) ? $options['traverseTo'] : null;
 		$limit = array_key_exists('limit', $options) ? NumberHelper::makeNumeric($options['limit']) : null;
 		$offset = array_key_exists('offset', $options) ? NumberHelper::makeNumeric($options['offset']) : 0;
 
@@ -24,18 +35,30 @@ class GuzzleVariable
 			if (!$response->isSuccessful()) {
 				return;
 			}
-
-			$items = $response->json();
-
-			// Cache the response
-			craft()->fileCache->set($url, $items);
-
-			// Apply the limit and offset
-			$items = array_slice($items, $offset, $limit);
-
-			return $items;
 		} catch(\Exception $e) {
 			return;
 		}
+
+		if ($format == 'xml') {
+			$items = $response->xml();
+			$items = $this->objectToArray($items);
+		} else {
+			$items = $response->json();
+		}
+
+		if($traverse_to) {
+			$keys = explode(',', $traverse_to);
+			foreach ($keys as $key) {
+				$items = $items[$key];
+			}
+		}
+
+		// Cache the response
+		craft()->fileCache->set($url, $items);
+
+		// Apply the limit and offset
+		$items = array_slice($items, $offset, $limit);
+
+		return $items;
 	}
 }
