@@ -9,7 +9,7 @@ class GuzzleVariable
 			return $object;
 		}
 
-	    return array_map(array($this, 'objectToArray'), (array) $object);
+		return array_map(array($this, 'objectToArray'), (array) $object);
 	}
 
 	public function get($options)
