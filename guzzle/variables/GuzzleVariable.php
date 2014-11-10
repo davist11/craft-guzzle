@@ -49,15 +49,15 @@ class GuzzleVariable
 		if($traverse_to) {
 			$keys = explode(',', $traverse_to);
 			foreach ($keys as $key) {
-				$items = $items[$key];
+				$items = $items[$key] ? $items[$key] : $items;
 			}
 		}
 
-		// Cache the response
-		craft()->fileCache->set($url, $items);
-
 		// Apply the limit and offset
 		$items = array_slice($items, $offset, $limit);
+
+		// Cache the response
+		craft()->fileCache->set($url, $items);
 
 		return $items;
 	}
